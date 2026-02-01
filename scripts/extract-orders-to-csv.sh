@@ -26,7 +26,7 @@ OUTPUT_FILE="$PROJECT_ROOT/output/orders_${START_DATE}_${END_DATE}.csv"
 # 出力ディレクトリ作成
 mkdir -p "$PROJECT_ROOT/output"
 
-# SQLクエリ
+# SQLクエリ（psql -v オプションで変数を置換）
 SQL="
 COPY (
   SELECT
@@ -45,19 +45,20 @@ COPY (
   JOIN regions r ON c.region_id = r.region_id
   LEFT JOIN employees e ON o.assigned_employee_id = e.employee_id
   LEFT JOIN order_items oi ON o.order_id = oi.order_id
-  WHERE o.ordered_at >= '${START_DATE}'
-    AND o.ordered_at <= '${END_DATE}'
+  WHERE o.ordered_at >= :'start_date'
+    AND o.ordered_at <= :'end_date'
   GROUP BY o.order_id, o.ordered_at, o.status, r.name, c.name, d.name, e.name
   ORDER BY o.ordered_at, o.order_id
 ) TO STDOUT WITH CSV HEADER
 "
 
 # SQL実行してCSV出力
-PGPASSWORD="$POSTGRES_PASSWORD" psql \
+echo "$SQL" | PGPASSWORD="$POSTGRES_PASSWORD" psql \
   -h "$POSTGRES_HOST" \
   -p "$POSTGRES_PORT" \
   -U "$POSTGRES_USER" \
   -d "$POSTGRES_DB" \
-  -c "$SQL" > "$OUTPUT_FILE"
+  -v start_date="$START_DATE" \
+  -v end_date="$END_DATE" > "$OUTPUT_FILE"
 
 echo "CSVファイルを出力しました: $OUTPUT_FILE"

@@ -12,8 +12,25 @@
 
 1. プロジェクトルートの `.env` ファイルを読み込む
 2. 環境変数をチェック
-3. 2024年1月1日〜2024年12月31日の注文データを抽出
+3. psql の `-v` オプションで変数を渡してSQLを実行
 4. `output/` ディレクトリにCSVファイルを出力
+
+## 技術的な仕組み
+
+このスクリプトは psql の `-v` オプションを使って変数をSQLに渡します。
+
+```bash
+echo "$SQL" | psql -v start_date="$START_DATE" -v end_date="$END_DATE"
+```
+
+`-v` オプションの変数展開は `-c` オプションでは動作しないため、`echo` で標準入力からSQLを渡しています。
+
+SQL内では `:'変数名'` の形式で変数を参照します：
+
+```sql
+WHERE o.ordered_at >= :'start_date'
+  AND o.ordered_at <= :'end_date'
+```
 
 ## 前提条件
 
