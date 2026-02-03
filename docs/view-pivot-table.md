@@ -280,7 +280,7 @@ flowchart TD
 
     CheckRead -->|成功| CreatePivot[CreatePivotTable呼び出し]
     CreatePivot --> CollectUnique[会社名・月を<br/>Collectionに収集]
-    CollectUnique --> BuildDict[Dictionaryに<br/>key=会社|月<br/>value=売上<br/>を保存]
+    CollectUnique --> BuildDict[Dictionaryに<br/>key=会社&#124;月<br/>value=売上<br/>を保存]
     BuildDict --> BuildArray[ピボット配列構築<br/>ヘッダー + データ行]
     BuildArray --> PivotEnd[配列を返す]
 
