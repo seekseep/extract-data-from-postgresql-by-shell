@@ -2,6 +2,7 @@
 -- Drop tables（テーブル削除）
 -- =========================
 
+DROP TABLE IF EXISTS jobs;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS products;
@@ -127,6 +128,19 @@ CREATE TABLE order_items (
 );
 
 -- =========================
+-- Jobs table（ジョブテーブル）
+-- =========================
+
+CREATE TABLE jobs (
+  id     bigint GENERATED ALWAYS AS IDENTITY,
+  result bytea,
+  status text NOT NULL DEFAULT 'pending',
+
+  CONSTRAINT pk_jobs PRIMARY KEY (id),
+  CONSTRAINT chk_jobs_status CHECK (status IN ('pending', 'running', 'completed', 'failed'))
+);
+
+-- =========================
 -- Indexes
 -- =========================
 
@@ -199,3 +213,9 @@ COMMENT ON COLUMN order_items.line_no IS '行番号';
 COMMENT ON COLUMN order_items.product_id IS '商品ID';
 COMMENT ON COLUMN order_items.quantity IS '数量';
 COMMENT ON COLUMN order_items.unit_price IS '単価';
+
+-- jobs（ジョブ）
+COMMENT ON TABLE jobs IS 'ジョブ';
+COMMENT ON COLUMN jobs.id IS 'ジョブID';
+COMMENT ON COLUMN jobs.result IS '結果（バイナリ）';
+COMMENT ON COLUMN jobs.status IS 'ステータス（pending/running/completed/failed）';

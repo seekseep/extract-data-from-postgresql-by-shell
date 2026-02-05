@@ -9,6 +9,7 @@
 - シェルスクリプトからPostgreSQLに接続する方法
 - SQLを実行してCSVファイルにデータを出力する方法
 - テンプレートSQLと変数ファイルを使った汎用的なデータ抽出
+- ストアドプロシージャとジョブを使った非同期データ抽出
 
 ## ディレクトリ構成
 
@@ -17,9 +18,11 @@
 ├── scripts/          # 実行スクリプト
 ├── sql/
 │   ├── definition.sql    # テーブル定義
+│   ├── stored-routine.sql # ストアドプロシージャ定義
 │   ├── seed.sql          # テストデータ
 │   └── templates/        # SQLテンプレート
 ├── variables/        # 変数定義ファイル
+├── view/             # Excel関連（マクロ等）
 ├── output/           # 出力先（生成される）
 └── docs/             # 各スクリプトの詳細ドキュメント
 ```
@@ -107,25 +110,15 @@ source ./scripts/load-env.sh
 
 ### データベースセットアップ
 
-#### setup-table.sh
+#### setup-database.sh
 
-`sql/definition.sql` を実行してテーブルを作成します。既存テーブルがある場合は削除してから再作成します。
-
-```bash
-./scripts/setup-table.sh
-```
-
-[詳細はこちら](docs/setup-table.md)
-
-#### setup-data.sh
-
-`sql/seed.sql` を実行してテストデータを投入します。
+`sql/definition.sql`（テーブル作成）、`sql/stored-routine.sql`（ストアドプロシージャ作成）、`sql/seed.sql`（テストデータ投入）をまとめて実行します。
 
 ```bash
-./scripts/setup-data.sh
+./scripts/setup-database.sh
 ```
 
-[詳細はこちら](docs/setup-data.md)
+[詳細はこちら](docs/setup-database.md)
 
 ### データ抽出
 
@@ -164,6 +157,61 @@ source ./scripts/load-env.sh
 
 [詳細はこちら](docs/execute-sql.md)
 
+### ピボットテーブル
+
+会社と月ごとの売上データをピボットテーブル形式で出力するスクリプト群です。
+
+#### export-sales-by-company-and-month.sh
+
+元データ形式（縦長）で売上データをCSV出力します。
+
+```bash
+./scripts/export-sales-by-company-and-month.sh 2024-01-01 2024-12-31
+```
+
+#### export-sales-by-company-and-month-as-pivot-with-awk.sh
+
+awkを使ってピボットテーブル形式でCSV出力します。
+
+```bash
+./scripts/export-sales-by-company-and-month-as-pivot-with-awk.sh 2024-01-01 2024-12-31
+```
+
+#### export-sales-by-company-and-month-as-pivot-with-pl-pgsql.sh
+
+PL/pgSQLの動的SQLを使ってピボットテーブル形式でCSV出力します。
+
+```bash
+./scripts/export-sales-by-company-and-month-as-pivot-with-pl-pgsql.sh 2024-01-01 2024-12-31
+```
+
+[ピボットテーブルの詳細はこちら](docs/view-pivot-table.md)
+
+### ジョブ
+
+ストアドプロシージャでジョブを実行し、結果をダウンロードするスクリプト群です。
+
+#### run-order-summary-job.sh
+
+注文サマリーをジョブとして実行し、結果を表示します。
+
+```bash
+./scripts/run-order-summary-job.sh 2024-01-01 2024-12-31
+```
+
+[詳細はこちら](docs/run-order-summary-job.md)
+
+#### download-job-result.sh
+
+ジョブの結果をCSVファイルとしてダウンロードします。
+
+```bash
+./scripts/download-job-result.sh <ジョブID>
+# -> output/job_<ジョブID>_result.csv が生成される
+```
+
+[詳細はこちら](docs/download-job-result.md)
+
 ## クイックスタート
 
 ```bash
@@ -174,13 +222,10 @@ source ./scripts/load-env.sh
 ./scripts/setup-env.sh
 # .env を編集して接続情報を設定
 
-# 3. テーブル作成
-./scripts/setup-table.sh
+# 3. データベースセットアップ（テーブル作成・ストアドプロシージャ作成・テストデータ投入）
+./scripts/setup-database.sh
 
-# 4. テストデータ投入
-./scripts/setup-data.sh
-
-# 5. データ抽出
+# 4. データ抽出
 ./scripts/extract-orders-to-csv.sh
 ```
 

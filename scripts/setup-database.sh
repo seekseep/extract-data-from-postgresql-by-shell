@@ -16,7 +16,7 @@ fi
 : "${POSTGRES_PORT:=5432}"
 : "${POSTGRES_HOST:=localhost}"
 
-# definition.sql を実行
+# 1. テーブル作成（definition.sql）
 PGPASSWORD="$POSTGRES_PASSWORD" psql \
   -h "$POSTGRES_HOST" \
   -p "$POSTGRES_PORT" \
@@ -25,3 +25,26 @@ PGPASSWORD="$POSTGRES_PASSWORD" psql \
   -f "$PROJECT_ROOT/sql/definition.sql"
 
 echo "definition.sql の実行が完了しました"
+
+# 2. ストアドプロシージャ作成（stored-routine.sql）
+PGPASSWORD="$POSTGRES_PASSWORD" psql \
+  -h "$POSTGRES_HOST" \
+  -p "$POSTGRES_PORT" \
+  -U "$POSTGRES_USER" \
+  -d "$POSTGRES_DB" \
+  -f "$PROJECT_ROOT/sql/stored-routine.sql"
+
+echo "stored-routine.sql の実行が完了しました"
+
+# 3. テストデータ投入（seed.sql）
+PGPASSWORD="$POSTGRES_PASSWORD" psql \
+  -h "$POSTGRES_HOST" \
+  -p "$POSTGRES_PORT" \
+  -U "$POSTGRES_USER" \
+  -d "$POSTGRES_DB" \
+  -f "$PROJECT_ROOT/sql/seed.sql"
+
+echo "seed.sql の実行が完了しました"
+
+echo ""
+echo "データベースのセットアップが完了しました"
